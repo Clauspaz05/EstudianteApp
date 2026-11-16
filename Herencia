@@ -1,0 +1,160 @@
+<?php
+/**
+ * ACTIVIDAD: Extensión del Sistema de Gestión de Estudiantes mediante Herencia (POO)
+ * Descripción: Se toma la clase base 'Estudiante' de la Unidad 2 y se crean 
+ * clases derivadas (EstudianteBecado y EstudiantePosgrado) reutilizando código 
+ * y aplicando sobrescritura (override) y métodos exclusivos.
+ */
+
+// ==========================================
+// 1. CLASE BASE (Superclase)
+// ==========================================
+class Estudiante {
+    // Cambiamos de private a protected para permitir el acceso en las clases derivadas
+    protected string $nombre;
+    protected string $matricula;
+    protected string $carrera;
+    protected float $nota1;
+    protected float $nota2;
+    protected float $nota3;
+
+    // Constructor de la clase base
+    public function __construct(string $nombre, string $matricula, string $carrera, float $nota1, float $nota2, float $nota3) {
+        $this->nombre = $nombre;
+        $this->matricula = $matricula;
+        $this->carrera = $carrera;
+        $this->nota1 = $nota1;
+        $this->nota2 = $nota2;
+        $this->nota3 = $nota3;
+    }
+
+    // Método para calcular el promedio
+    public function calcularPromedio(): float {
+        return ($this->nota1 + $this->nota2 + $this->nota3) / 3.0;
+    }
+
+    // Método para verificar aprobación
+    public function estaAprobado(): bool {
+        return $this->calcularPromedio() >= 70.0;
+    }
+
+    // Getter útil para obtener el nombre desde fuera
+    public function getNombre(): string {
+        return $this->nombre;
+    }
+
+    // Método base que podrá ser sobrescrito (polimorfismo) en las clases hijas
+    public function mostrarDatos(): string {
+        $estado = $this->estaAprobado() ? "APROBADO" : "REPROBADO";
+        $promedioFmt = number_format($this->calcularPromedio(), 2);
+        return "Matrícula: {$this->matricula} | {$this->nombre} | Promedio: {$promedioFmt} pts | Estado: {$estado}";
+    }
+}
+
+// ==========================================
+// 2. CLASE DERIVADA 1: EstudianteBecado
+// ==========================================
+class EstudianteBecado extends Estudiante {
+    // Atributo único de la subclase
+    private float $porcentajeBeca;
+
+    public function __construct(string $nombre, string $matricula, string $carrera, float $nota1, float $nota2, float $nota3, float $porcentajeBeca) {
+        // Reutilizamos el constructor de la clase base con parent::
+        parent::__construct($nombre, $matricula, $carrera, $nota1, $nota2, $nota3);
+        $this->porcentajeBeca = $porcentajeBeca;
+    }
+
+    // Método exclusivo de la subclase becado
+    public function obtenerInfoBeca(): string {
+        return "Beneficio: Beca del {$this->porcentajeBeca}% aplicada.";
+    }
+
+    // Sobrescritura (Override) del método mostrarDatos para sumar detalles de la beca
+    public function mostrarDatos(): string {
+        // Reutilizamos el texto base llamando a parent::mostrarDatos() y le agregamos la beca
+        return parent::mostrarDatos() . " | [Categoría: Becado ({$this->porcentajeBeca}%)]";
+    }
+}
+
+// ==========================================
+// 3. CLASE DERIVADA 2: EstudiantePosgrado
+// ==========================================
+class EstudiantePosgrado extends Estudiante {
+    // Atributos únicos de posgrado
+    private string $temaTesis;
+
+    public function __construct(string $nombre, string $matricula, string $carrera, float $nota1, float $nota2, float $nota3, string $temaTesis) {
+        // Reutilizamos el constructor de la clase base
+        parent::__construct($nombre, $matricula, $carrera, $nota1, $nota2, $nota3);
+        $this->temaTesis = $temaTesis;
+    }
+
+    // Método exclusivo de la subclase posgrado
+    public function obtenerDetalleTesis(): string {
+        return "Proyecto de Tesis: '{$this->temaTesis}'";
+    }
+
+    // Sobrescritura (Override) del método mostrarDatos
+    public function mostrarDatos(): string {
+        // Reutilizamos el método base y añadimos información del posgrado
+        return parent::mostrarDatos() . " | [Posgrado - Tesis]";
+    }
+}
+
+// ==========================================
+// 4. PROGRAMA PRINCIPAL (Instanciación y Resumen)
+// ==========================================
+
+echo "SISTEMA DE GESTIÓN DE ESTUDIANTES (Ampliación con Herencia)\n";
+echo "=========================================================================\n";
+
+// Creamos un arreglo combinando estudiantes normales, becados y de posgrado
+$estudiantes = [
+    new Estudiante("Alejandro Méndez", "53532", "Ingeniería en Software", 85.0, 90.0, 85.0),
+    new EstudianteBecado("Carlos Mendoza", "48201", "Ingeniería en Sistemas", 55.0, 60.0, 60.0, 50.0), // Becado
+    new EstudianteBecado("Ana María Torres", "51102", "Ingeniería en Software", 95.0, 97.0, 98.0, 100.0), // Becado 100%
+    new Estudiante("Luis Fernando Gómez", "52489", "Ingeniería en Computación", 70.0, 72.0, 71.0),
+    new EstudiantePosgrado("Sofía Villarreal", "54310", "Maestría en Tecnologías", 58.0, 60.0, 59.0, "Ciberseguridad en Cloud Computing") // Posgrado
+];
+
+$totalEstudiantes = count($estudiantes);
+$aprobados = 0;
+$reprobados = 0;
+$sumaPromedios = 0;
+$mejorPromedio = -1;
+$mejorEstudianteNombre = "";
+
+// Recorremos el arreglo aplicando polimorfismo en mostrarDatos()
+foreach ($estudiantes as $estudiante) {
+    echo $estudiante->mostrarDatos() . "\n";
+
+    // Si es un estudiante becado o de posgrado, demostramos el uso de sus métodos exclusivos
+    if ($estudiante instanceof EstudianteBecado) {
+        // echo "   -> " . $estudiante->obtenerInfoBeca() . "\n";
+    } elseif ($estudiante instanceof EstudiantePosgrado) {
+        // echo "   -> " . $estudiante->obtenerDetalleTesis() . "\n";
+    }
+
+    $promedioActual = $estudiante->calcularPromedio();
+    $sumaPromedios += $promedioActual;
+
+    if ($estudiante->estaAprobado()) {
+        $aprobados++;
+    } else {
+        $reprobados++;
+    }
+
+    if ($promedioActual > $mejorPromedio) {
+        $mejorPromedio = $promedioActual;
+        $mejorEstudianteNombre = $estudiante->getNombre();
+    }
+}
+
+echo "=========================================================================\n";
+echo "RESUMEN DEL GRUPO:\n";
+echo "Total de estudiantes: {$totalEstudiantes}\n";
+echo "Promedio general: " . number_format($sumaPromedios / $totalEstudiantes, 2) . " pts\n";
+echo "Aprobados: {$aprobados} | Reprobados: {$reprobados}\n";
+echo "Mejor estudiante: {$mejorEstudianteNombre} (" . number_format($mejorPromedio, 2) . " pts)\n";
+echo "=========================================================================\n";
+?>
